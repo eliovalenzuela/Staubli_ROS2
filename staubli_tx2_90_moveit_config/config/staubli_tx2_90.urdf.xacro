@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="staubli_tx2_90">
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+
+    <!-- Import staubli_tx2_90 urdf file -->
+    <xacro:include filename="$(find staubli_tx2_90_description)/urdf/tx2_60l.xacro" />
+
+    <!-- Import control_xacro -->
+    <xacro:include filename="staubli_tx2_90.ros2_control.xacro" />
+
+
+    <xacro:staubli_tx2_90_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>
