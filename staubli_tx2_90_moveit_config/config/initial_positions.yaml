@@ -1,4 +1,4 @@
-# Default initial positions for staubli_tx2_60l's ros2_control fake system
+# Default initial positions for staubli_tx2_90's ros2_control fake system
 
 initial_positions:
   joint_1: 0

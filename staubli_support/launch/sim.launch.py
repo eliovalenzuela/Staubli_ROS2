@@ -14,8 +14,8 @@ def generate_launch_description():
     launch_files.append(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory("staubli_tx2_60l_moveit_config"),
-                             "launch", "staubli_tx2_60l_planning_execution_sim.launch.py")
+                os.path.join(get_package_share_directory("staubli_tx2_90_moveit_config"),
+                             "launch", "staubli_tx2_90_planning_execution_sim.launch.py")
             )
         )
     )

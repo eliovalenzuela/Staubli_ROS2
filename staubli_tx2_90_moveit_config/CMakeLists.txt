@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(staubli_tx2_60l_moveit_config)
+project(staubli_tx2_90_moveit_config)
 
 find_package(ament_cmake REQUIRED)
 

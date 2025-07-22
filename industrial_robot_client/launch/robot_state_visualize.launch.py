@@ -20,9 +20,9 @@ def generate_launch_description():
     )
     robot_description_config = xacro.process_file(
         os.path.join(
-            get_package_share_directory("staubli_tx2_60l_description"),
+            get_package_share_directory("staubli_tx2_90_description"),
             "urdf",
-            "staubli_tx2_60l.xacro",
+            "staubli_tx2_90.xacro",
         )
     )
     robot_description = {"robot_description": robot_description_config.toxml()}

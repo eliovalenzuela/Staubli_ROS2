@@ -1,9 +1,9 @@
 moveit_setup_assistant_config:
   urdf:
-    package: staubli_tx2_60l_description
+    package: staubli_tx2_90_description
     relative_path: urdf/tx2_60l.xacro
   srdf:
-    relative_path: config/staubli_tx2_60l.srdf
+    relative_path: config/staubli_tx2_90.srdf
   package_settings:
     author_name: Ivo
     author_email: ivo.dekker@kuleuven.be
