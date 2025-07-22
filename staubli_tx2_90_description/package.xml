@@ -3,12 +3,16 @@
   <name>staubli_tx2_90_description</name>
   <version>0.1.0</version>
   <description>URDF/XACRO model for Staubli TX2‑90 robot</description>
-  <maintainer email="elio@ugr.es">Elio</maintainer>
+
+  <maintainer email="tucorreo@ejemplo.com">Tu Nombre</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>xacro</depend>
   <depend>robot_state_publisher</depend>
-
   <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>
