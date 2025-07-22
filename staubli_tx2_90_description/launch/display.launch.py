@@ -7,7 +7,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     pkg = get_package_share_directory('staubli_tx2_90_description')
-    xacro_file = PathJoinSubstitution([pkg, 'urdf', 'staubli_tx2_90_support.urdf.xacro'])
+    xacro_file = PathJoinSubstitution([pkg, 'urdf', 'staubli_tx2_90_description.urdf.xacro'])
     
     rsp = Node(
         package='robot_state_publisher',
