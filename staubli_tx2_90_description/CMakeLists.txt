@@ -8,5 +8,8 @@ find_package(robot_state_publisher REQUIRED)
 install(DIRECTORY urdf
   DESTINATION share/${PROJECT_NAME}
 )
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
