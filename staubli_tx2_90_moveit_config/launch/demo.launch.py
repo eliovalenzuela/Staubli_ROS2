@@ -14,7 +14,7 @@ def generate_launch_description():
     pkg_moveit = get_package_share_directory('staubli_tx2_90_moveit_config')
 
     # 🔹 Archivo XACRO
-    xacro_file = PathJoinSubstitution([pkg_desc, 'urdf', 'staubli_tx2_90_support.urdf.xacro'])
+    xacro_file = PathJoinSubstitution([pkg_desc, 'urdf', '/staubli_tx2_90_description.urdf.xacro'])
 
     # 🔹 Robot description (URDF generado)
     robot_description = ParameterValue(
