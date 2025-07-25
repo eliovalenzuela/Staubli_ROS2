@@ -10,3 +10,10 @@ $ echo "export DISPLAY=:0" >> ~/.bashrc
 $ source ~/.bashrc
 $ echo 'export LIBGL_ALWAYS_INDIRECT=0' >> ~/.bashrc
  
+
+ACTUALIZAR REPO:
+cd src/Staubli_ROS2/
+git pull origin Staubli_tx290_ROS2
+rm -rf build install log
+colcon build --symlink-install
+source ~/ros2_ws/install/setup.bash

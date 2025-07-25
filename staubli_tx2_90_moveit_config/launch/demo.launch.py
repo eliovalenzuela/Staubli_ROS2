@@ -24,13 +24,6 @@ def generate_launch_description():
     # 🔹 ros2_control config
     ros2_controllers = PathJoinSubstitution([pkg_moveit, 'config', 'ros2_controllers.yaml'])
 
-    robot_state_publisher_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        parameters=[moveit_config.robot_description]
-    )
-
     # 🔹 1. Nodo que inicia ros2_control con tus controladores
     ros2_control_node = Node(
         package='controller_manager',
@@ -61,6 +54,13 @@ def generate_launch_description():
         .trajectory_execution(file_path="config/ros2_controllers.yaml")
         .planning_pipelines(pipelines=["ompl"])
         .to_moveit_configs()
+    )
+
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        parameters=[moveit_config.robot_description]
     )
 
     # 🔹 4. Nodo principal de Move Group
