@@ -24,6 +24,13 @@ def generate_launch_description():
     # 🔹 ros2_control config
     ros2_controllers = PathJoinSubstitution([pkg_moveit, 'config', 'ros2_controllers.yaml'])
 
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        parameters=[moveit_config.robot_description]
+    )
+
     # 🔹 1. Nodo que inicia ros2_control con tus controladores
     ros2_control_node = Node(
         package='controller_manager',
@@ -96,5 +103,6 @@ def generate_launch_description():
         joint_state_pub,
         manipulator_spawner,
         move_group_node,
-        rviz_node
+        rviz_node,
+        robot_state_publisher_node 
     ])
