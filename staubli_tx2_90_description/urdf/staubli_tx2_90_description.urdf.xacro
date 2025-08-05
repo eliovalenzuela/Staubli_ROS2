@@ -200,5 +200,40 @@
     <child link="tool0"/>
     <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
+  <ros2_control name="StaubliHardware" type="system">
+  <hardware>
+    <plugin>ros2_control_demo_hardware/GenericSystem</plugin>
+  </hardware>
+  <joint name="joint_1">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="joint_2">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="joint_3">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="joint_4">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="joint_5">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="joint_6">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+</ros2_control>
 </robot>
 
