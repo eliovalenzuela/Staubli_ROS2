@@ -1,8 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import TimerAction
 from launch_ros.actions import Node
 from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_directory
@@ -10,6 +8,7 @@ from moveit_configs_utils import MoveItConfigsBuilder
 import xacro
 
 def generate_launch_description():
+    pkg_moveit = get_package_share_directory("staubli_tx2_90_moveit_config")
 
     moveit_config = (
         MoveItConfigsBuilder("staubli_tx2_90")
@@ -19,54 +18,71 @@ def generate_launch_description():
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .to_moveit_configs()
     )
-    # Trajectory execution functionality
-    controllers_yaml = xacro.load_yaml(
-        os.path.join(
-            get_package_share_directory("staubli_tx2_90_moveit_config"),
-            "config",
-            "staubli_tx2_90_controllers.yaml",
-        )
-    )
-    moveit_controllers = {
-        "moveit_simple_controller_manager": controllers_yaml,
-        "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager",
-    }
-    trajectory_execution = {
-        "moveit_manage_controllers": False,
-        "trajectory_execution.execution_duration_monitoring": False,
-        "trajectory_execution.allowed_execution_duration_scaling": 100.0,
-        "trajectory_execution.allowed_goal_duration_margin": 0.5,
-        "trajectory_execution.allowed_start_tolerance": 0.01,
-    }
-    #Planning scene monitor
-    planning_scene_monitor_parameters = {
-        "publish_planning_scene": True,
-        "publish_geometry_updates": True,
-        "publish_state_updates": True,
-        "publish_transforms_updates": True,
-    }
-    
 
-    # Start the actual move_group node/action server
-    move_group_node = Node(
+    controller_config_path = os.path.join(pkg_moveit, "config", "staubli_tx2_90_controllers.yaml")
+    controllers_yaml = xacro.load_yaml(controller_config_path)
+
+    node_ros2_control = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        output="screen",
+        parameters=[controllers_yaml]
+    )
+
+    load_controllers = TimerAction(
+        period=5.0,
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    "ros2", "run", "controller_manager", "spawner",
+                    "joint_state_broadcaster",
+                    "--controller-manager", "/controller_manager",
+                    "--param-file", controller_config_path
+                ],
+                output="screen",
+            ),
+            ExecuteProcess(
+                cmd=[
+                    "ros2", "run", "controller_manager", "spawner",
+                    "manipulator_controller",
+                    "--controller-manager", "/controller_manager",
+                    "--param-file", controller_config_path
+                ],
+                output="screen",
+            ),
+        ],
+    )
+
+    node_move_group = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict(),
-                    trajectory_execution,
-                    moveit_controllers,
-                    planning_scene_monitor_parameters],
+        parameters=[
+            moveit_config.to_dict(),
+            {
+                "moveit_manage_controllers": False,
+                "trajectory_execution.allowed_start_tolerance": 0.01,
+            },
+            {
+                "moveit_simple_controller_manager": controllers_yaml,
+                "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager"
+            },
+            {
+                "publish_planning_scene": True,
+                "publish_geometry_updates": True,
+                "publish_state_updates": True,
+                "publish_transforms_updates": True,
+            }
+        ],
         arguments=["--ros-args", "--log-level", "info"],
     )
-    #RViz2
-    rviz_base = os.path.join(get_package_share_directory("staubli_tx2_90_moveit_config"), "config")
-    rviz_full_config = os.path.join(rviz_base, "moveit.rviz")
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
+        arguments=["-d", os.path.join(pkg_moveit, "config", "moveit.rviz")],
         output="log",
-        arguments=["-d", rviz_full_config],
         parameters=[
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
@@ -74,18 +90,15 @@ def generate_launch_description():
         ],
     )
 
-    # Static TF
-    static_tf_node = Node(
+    static_tf = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
         name="static_transform_publisher",
         output="log",
-        arguments=["--frame-id", "map",
-                   "--child-frame-id", "base_link"],
+        arguments=["--frame-id", "map", "--child-frame-id", "base_link"],
     )
 
-    # Publish TF
-    robot_state_publisher = Node(
+    robot_state_pub = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
@@ -93,26 +106,11 @@ def generate_launch_description():
         parameters=[moveit_config.robot_description],
     )
 
-    # Load controllers
-    load_controllers = []
-
-    for controller in [
-        "manipulator_controller",
-        "joint_state_broadcaster",
-    ]:
-        load_controllers += [
-            ExecuteProcess(
-                cmd=["ros2 run controller_manager spawner.py {}".format(controller)],
-                shell=True,
-                output="screen",
-            )
-        ]
-
-    return LaunchDescription(
-        [
-            rviz_node,
-            static_tf_node,
-            robot_state_publisher,
-            move_group_node
-        ]
-    )
+    return LaunchDescription([
+        rviz_node,
+        static_tf,
+        robot_state_pub,
+        node_ros2_control,
+        load_controllers,
+        node_move_group,
+    ])
