@@ -4,7 +4,7 @@ moveit_simple_controller_manager:
     - manipulator_controller
   manipulator_controller:
     type: FollowJointTrajectory
-    action_ns: follow_joint_trajectory
+    action_ns: joint_trajectory_action
     default: true
     joints:
       - joint_1
