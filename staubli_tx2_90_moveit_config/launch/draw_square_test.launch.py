@@ -3,7 +3,7 @@ import os
 import xacro
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, TimerAction, ExecuteProcess   # <- añade ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
@@ -22,7 +22,6 @@ def generate_launch_description():
     )
     robot_ip = LaunchConfiguration("robot_ip")
 
-    # MoveIt config (URDF/SRDF/kinematics/controllers)
     moveit_config = (
         MoveItConfigsBuilder("staubli_tx2_90")
         .robot_description(file_path="config/staubli_tx2_90.urdf.xacro")
@@ -35,7 +34,6 @@ def generate_launch_description():
     controller_config_path = os.path.join(pkg_moveit, "config", "staubli_tx2_90_controllers.yaml")
     controllers_yaml = xacro.load_yaml(controller_config_path)
 
-    # RViz / TF / robot_state_publisher (arrancan inmediatamente)
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -65,7 +63,6 @@ def generate_launch_description():
         parameters=[moveit_config.robot_description],
     )
 
-    # move_group: LO INICIAMOS ANTES que el driver (para que exponga parámetros/servicios)
     trajectory_execution = {
         "moveit_manage_controllers": False,
         "trajectory_execution.execution_duration_monitoring": False,
@@ -79,6 +76,9 @@ def generate_launch_description():
         "publish_geometry_updates": True,
         "publish_state_updates": True,
         "publish_transforms_updates": True,
+        # nos aseguramos de que MoveIt publique URDF/SRDF para clientes externos
+        "publish_robot_description": True,
+        "publish_robot_description_semantic": True,
     }
 
     move_group_node = Node(
@@ -88,31 +88,55 @@ def generate_launch_description():
         parameters=[
             moveit_config.to_dict(),
             trajectory_execution,
-            {"moveit_simple_controller_manager": controllers_yaml,
-             "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager"},
-            planning_scene_monitor_parameters
+            {
+                "moveit_simple_controller_manager": controllers_yaml,
+                "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager",
+            },
+            planning_scene_monitor_parameters,
         ],
         arguments=["--ros-args", "--log-level", "info"],
     )
 
-    # Include del launch del driver (arrancamos con un pequeño delay para dejar
-    # a move_group inicializar sus parámetros/servicios)
     include_driver = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg_driver, "launch", "robot_interface_streaming.launch.py")),
-        launch_arguments={"robot_ip": robot_ip}.items()
+        launch_arguments={"robot_ip": robot_ip}.items(),
+    )
+    include_driver_delayed = TimerAction(period=20.0, actions=[include_driver])
+
+    # --- NUEVO: ejecutar tu script draw_square.py 30 s después de lanzar move_group ---
+    draw_square_proc = TimerAction(
+        period=30.0,
+        actions=[
+            ExecuteProcess(
+                cmd=["/usr/bin/env", "python3", "/ros2_ws/scripts/draw_square.py"],
+                output="screen",
+                # Hereda el entorno ya "sourced" desde tu terminal/launch
+            )
+        ],
     )
 
-    # Ajusta este retardo si tu red o driver tardan más en inicializar (ej: 3-8s)
-    driver_delay_seconds = 15.0
-    include_driver_delayed = TimerAction(period=driver_delay_seconds, actions=[include_driver])
+ # === NUEVO: ruta al params-file para MoveItPy ===
+    draw_params_file = os.path.join(pkg_moveit, "config", "draw_square_params.yaml")
 
-    ld = LaunchDescription([
+    # === NUEVO: lanzar tu script con esos parámetros ===
+    # Si tu script está en /ros2_ws/scripts/draw_square.py, usa esa ruta absoluta:
+    draw_script_path = "/ros2_ws/scripts/draw_square.py"
+
+    draw_proc = ExecuteProcess(
+    cmd=["/usr/bin/env", "python3", "/ros2_ws/scripts/draw_square.py"],
+    output="screen",
+    env=os.environ,
+    )
+
+    draw_delayed = TimerAction(period=30.0, actions=[draw_proc])
+
+    return LaunchDescription([
         declare_robot_ip,
         rviz_node,
         static_tf,
         robot_state_pub,
-        move_group_node,          # arrancar primero
-        include_driver_delayed,   # arrancar driver con retardo
+        move_group_node,
+        include_driver_delayed,
+        draw_square_proc,     # <-- aquí
+        draw_delayed
     ])
-
-    return ld

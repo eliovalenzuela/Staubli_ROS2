@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    # Mínimo imprescindible para MoveItCpp/MoveItPy
+    planning_pipelines: ["ompl"]
+
+    ompl:
+      planning_plugin: ompl_interface/OMPLPlanner
+      request_adapters: >-
+        default_planning_request_adapters/FixWorkspaceBounds
+        default_planning_request_adapters/ValidateWorkspaceBounds
+        default_planning_request_adapters/ValidateStartStateBounds
+        default_planning_request_adapters/ValidateStartStateCollision
+        default_planning_request_adapters/ValidateStartStatePathConstraints
+        default_planning_request_adapters/AddTimeParameterization
+      start_state_max_bounds_error: 0.1
